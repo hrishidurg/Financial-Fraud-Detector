@@ -13,6 +13,145 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 
+def demo_video_scenarios():
+    """Demo scenarios for video recording - matches VIDEO_SCRIPT_GUIDE.md"""
+    import json
+    import time
+    
+    print("="*80)
+    print(" IBM WATSON AI - VIDEO DEMO SCENARIOS")
+    print(" Scene 3 & 4: Normal vs Fraudulent Transactions")
+    print("="*80)
+    
+    # Initialize components
+    risk_engine = RiskScoringEngine()
+    monitor = TransactionMonitor()
+    
+    # Scene 3: Normal Transaction
+    print("\n" + "="*80)
+    print("🎬 SCENE 3: NORMAL TRANSACTION DEMO")
+    print("="*80)
+    print("\n📝 Transaction Details:")
+    
+    normal_txn = {
+        "transaction_id": "TXN_001",
+        "user_id": "DEMO_USER",
+        "amount": 49.99,
+        "merchant_category": "grocery",
+        "location": "US",
+        "device_id": "DEVICE_A",
+        "timestamp": datetime.now()
+    }
+    
+    print(json.dumps({
+        "transaction_id": normal_txn["transaction_id"],
+        "user_id": normal_txn["user_id"],
+        "amount": normal_txn["amount"],
+        "merchant_category": normal_txn["merchant_category"],
+        "location": normal_txn["location"],
+        "device_id": normal_txn["device_id"]
+    }, indent=2))
+    
+    print("\n⏱️  Processing transaction...")
+    start_time = time.time()
+    
+    # Add to monitor first to build history
+    monitor.add_transaction(normal_txn)
+    user_history = list(monitor.user_transactions[normal_txn['user_id']])
+    user_devices = monitor.user_devices[normal_txn['user_id']]
+    
+    result = risk_engine.calculate_risk_score(
+        transaction=normal_txn,
+        user_history=user_history,
+        user_devices=user_devices
+    )
+    
+    latency_ms = (time.time() - start_time) * 1000
+    
+    print("\n✅ Response:")
+    response = {
+        "risk_score": result['risk_score'],
+        "decision": result['decision'],
+        "action": result['action'],
+        "confidence": result['confidence'],
+        "latency_ms": round(latency_ms, 2)
+    }
+    print(json.dumps(response, indent=2))
+    
+    print("\n💬 Narration:")
+    print(f"   Risk score: {result['risk_score']} out of 100.")
+    print(f"   Decision: {result['decision'].upper()}.")
+    print(f"   No customer friction.")
+    print(f"   Transaction completed in {latency_ms:.0f} milliseconds.")
+    
+    # Scene 4: Fraudulent Transaction
+    print("\n" + "="*80)
+    print("🎬 SCENE 4: FRAUDULENT TRANSACTION DEMO")
+    print("="*80)
+    print("\n📝 Transaction Details:")
+    
+    fraud_txn = {
+        "transaction_id": "TXN_002",
+        "user_id": "DEMO_USER",
+        "amount": 5000.00,
+        "merchant_category": "gambling",
+        "location": "CN",
+        "device_id": "UNKNOWN",
+        "timestamp": datetime.now() + timedelta(minutes=5)
+    }
+    
+    print(json.dumps({
+        "transaction_id": fraud_txn["transaction_id"],
+        "user_id": fraud_txn["user_id"],
+        "amount": fraud_txn["amount"],
+        "merchant_category": fraud_txn["merchant_category"],
+        "location": fraud_txn["location"],
+        "device_id": fraud_txn["device_id"]
+    }, indent=2))
+    
+    print("\n⏱️  Processing transaction...")
+    start_time = time.time()
+    
+    # Get updated user history
+    user_history = list(monitor.user_transactions[fraud_txn['user_id']])
+    user_devices = monitor.user_devices[fraud_txn['user_id']]
+    
+    result = risk_engine.calculate_risk_score(
+        transaction=fraud_txn,
+        user_history=user_history,
+        user_devices=user_devices
+    )
+    
+    latency_ms = (time.time() - start_time) * 1000
+    
+    print("\n🚨 Response:")
+    response = {
+        "risk_score": result['risk_score'],
+        "decision": result['decision'],
+        "action": result['action'],
+        "top_risk_factors": result['top_risk_factors'][:4]
+    }
+    print(json.dumps(response, indent=2))
+    
+    print("\n💬 Narration:")
+    print(f"   Risk score: {result['risk_score']}.")
+    print(f"   Decision: {result['decision'].upper()}.")
+    print("   The system immediately identifies this as fraud and provides")
+    print("   explainable reasons:")
+    for factor in result['top_risk_factors'][:4]:
+        factor_name = factor['factor'].replace('_', ' ').title()
+        print(f"     • {factor_name}")
+    print("\n   The fraud team gets an instant alert with all the context they need.")
+    print("   No guesswork, just intelligent AI-powered decisions.")
+    
+    print("\n" + "="*80)
+    print("✅ VIDEO DEMO SCENARIOS COMPLETED")
+    print("="*80)
+    print("\n📹 Ready for screen recording!")
+    print("   Use these outputs for your video demonstration.")
+    print("="*80)
+
+
 def demo_full_pipeline():
     """Demonstrate the complete fraud detection pipeline"""
     
@@ -171,4 +310,11 @@ def demo_full_pipeline():
 
 
 if __name__ == "__main__":
-    demo_full_pipeline()
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "--video":
+        # Run video demo scenarios
+        demo_video_scenarios()
+    else:
+        # Run full pipeline demo
+        demo_full_pipeline()
